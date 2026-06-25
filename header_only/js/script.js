@@ -1201,9 +1201,9 @@ const plainTextRenderSelector = plainTextRenderSelectors.join(",");
 
 function shouldRenderPlainText(element) {
   return Boolean(
-    plainTextRenderSelector &&
     element &&
-    element.matches(plainTextRenderSelector),
+      (textRenderMode === "plain" ||
+        (plainTextRenderSelector && element.matches(plainTextRenderSelector))),
   );
 }
 
@@ -1320,7 +1320,7 @@ function getTextRenderEngineKey() {
   const viewportKey = "vp" + viewportTextVersion;
   return textRenderMode === "bitmap"
     ? `${TEXT_RENDER_ENGINE}:${bitmapTextFontVersion}:${textRenderModeVersion}:${viewportKey}`
-    : `svg-text-v1:${textRenderModeVersion}:${viewportKey}`;
+    : `${textRenderMode}-text-v1:${textRenderModeVersion}:${viewportKey}`;
 }
 
 function shouldUseBitmapTextMasks() {
@@ -2171,7 +2171,9 @@ function getSvgTextZoomFactor() {
 }
 
 function updateSvgTextZoomCompensation() {
-  const nextMode = "bitmap";
+  const textOnlyZoomFactor = getSvgTextZoomFactor();
+  const isTextOnlyZoom = textOnlyZoomFactor > 1.03;
+  const nextMode = isTextOnlyZoom ? "plain" : "bitmap";
   const changed = nextMode !== textRenderMode;
 
   if (changed) {
@@ -2180,6 +2182,10 @@ function updateSvgTextZoomCompensation() {
     bitmapTextMaskCache.clear();
   }
 
+  document.documentElement.classList.toggle(
+    "is-text-only-zoom",
+    isTextOnlyZoom,
+  );
   document.documentElement.style.setProperty("--svg-text-zoom-inverse", "1");
   return changed;
 }
