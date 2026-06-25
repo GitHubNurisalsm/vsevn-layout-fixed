@@ -542,6 +542,7 @@ body:has(#adsTable) #zoomFrame {
 .ads-export-line {
   display: flex;
   align-items: center;
+  gap: calc(8 * var(--px));
   flex: 1;
   min-width: 0;
   height: 100%;
