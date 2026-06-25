@@ -2080,10 +2080,14 @@ function getScrollRoot() {
 function captureViewportScrollAnchor() {
   const root = getScrollRoot();
   const scale = getCurrentPageScale();
+  const y = root ? root.scrollTop : window.scrollY || window.pageYOffset || 0;
+  const viewportHeight = root ? root.clientHeight : window.innerHeight;
+  const maxY = root ? Math.max(0, root.scrollHeight - viewportHeight) : 0;
   return {
     scale: Number.isFinite(scale) && scale > 0 ? scale : 1,
     x: window.scrollX || window.pageXOffset || 0,
-    y: root ? root.scrollTop : window.scrollY || window.pageYOffset || 0,
+    y,
+    bottomGap: Math.max(0, maxY - y),
   };
 }
 
@@ -2098,9 +2102,13 @@ function restoreViewportScrollAnchor(anchor) {
   if (!root) return;
 
   const currentY = root.scrollTop;
-  const maxY = Math.max(0, root.scrollHeight - window.innerHeight);
+  const viewportHeight = root.clientHeight || window.innerHeight;
+  const maxY = Math.max(0, root.scrollHeight - viewportHeight);
+  const scaleRatio = nextScale / anchor.scale;
+  const scaledY = anchor.y * scaleRatio;
+  const bottomLockedY = maxY - anchor.bottomGap;
   const nextY = clampOverlayValue(
-    anchor.y * (nextScale / anchor.scale),
+    anchor.bottomGap <= 64 ? bottomLockedY : scaledY,
     0,
     maxY,
   );
@@ -2173,9 +2181,13 @@ function activateZoomHoverShield() {
   shield.hidden = false;
   if (zoomHoverShieldTimer) clearTimeout(zoomHoverShieldTimer);
   zoomHoverShieldTimer = setTimeout(function () {
-    shield.hidden = true;
-    zoomHoverShieldTimer = null;
-    releaseZoomHoverBlock();
+    window.requestAnimationFrame(function () {
+      window.requestAnimationFrame(function () {
+        shield.hidden = true;
+        zoomHoverShieldTimer = null;
+        releaseZoomHoverBlock();
+      });
+    });
   }, 260);
 }
 

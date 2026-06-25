@@ -372,10 +372,10 @@ body:has(#adsTable) #zoomFrame {
 }
 .ads-date-line {
   display: block;
-  padding: var(--fc-toolbar-top, calc(10 * var(--px))) calc(14 * var(--px)) 0;
+  padding: calc(10 * var(--px)) calc(14 * var(--px)) 0;
   font-size: calc(21.6 * var(--px));
   font-weight: 300;
-  line-height: 1;
+  line-height: calc(25 * var(--px));
   white-space: nowrap;
   pointer-events: none;
 }
@@ -862,9 +862,7 @@ body:has(#adsTable) #zoomFrame {
   box-sizing: border-box;
   flex-shrink: 0;
   box-shadow: inset 0 0 0 0 var(--c-link);
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.18s ease;
+  transition: none;
 }
 /* Figma Ellipse 24: 28×28, stroke #0087FC weight 9 INSIDE — кольцо с белым центром */
 .ads-radio:hover .ads-radio-dot {
@@ -883,13 +881,37 @@ body:has(#adsTable) #zoomFrame {
   color: var(--c-text);
   white-space: nowrap;
   display: inline-block;
-  transition:
-    color 0.15s ease,
-    font-weight 0.15s ease;
+  transition: none;
 }
 .ads-radio.is-active .ads-radio-text {
   color: var(--c-link);
   font-weight: 400;
+}
+
+.ads-radio-text .svg-label,
+.ads-check .ads-check-label .svg-label,
+.ads-dropdown-text .svg-label,
+.ads-count-label .svg-label,
+.ads-count-num .svg-label,
+.ads-delete-text .svg-label,
+.ads-export-text .svg-label,
+.ads-export-xml .svg-label {
+  display: block;
+}
+
+.ads-radio-text,
+.ads-check .ads-check-label,
+.ads-dropdown-text,
+.ads-count-label,
+.ads-count-num,
+.ads-delete-text,
+.ads-export-text,
+.ads-export-xml {
+  font-size: 0 !important;
+  line-height: 0 !important;
+  text-size-adjust: none;
+  -webkit-text-size-adjust: none;
+  -moz-text-size-adjust: none;
 }
 
 /* ---------- Чекбоксы (ТЗ п.18: анимация заливки и галочки) ---------- */
@@ -934,9 +956,7 @@ body:has(#adsTable) #zoomFrame {
   background: #fff;
   box-sizing: border-box;
   box-shadow: inset 0 0 0 0 var(--c-link);
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: none;
 }
 .ads-check:hover .check-input:not(:checked) + .ads-check-label::before {
   border-color: var(--c-link);
@@ -957,9 +977,7 @@ body:has(#adsTable) #zoomFrame {
   background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 15' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><path d='M2 8l4.5 4.5L16 2.5'/></svg>")
     center/calc(16 * var(--px)) no-repeat;
   pointer-events: none;
-  transition:
-    transform 0.16s ease 0.07s,
-    opacity 0.16s ease 0.07s;
+  transition: none;
 }
 .ads-check .check-input:checked + .ads-check-label::after {
   transform: scale(1);

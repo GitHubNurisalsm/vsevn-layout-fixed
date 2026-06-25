@@ -1689,6 +1689,7 @@
     applyTableCellWrap();
     applyContactTableCellWrap();
     bindRowInteractions();
+    applyAdsStatic();
   }
 
   window.__afterTableCellLayout = afterTableCellLayout;
@@ -2725,6 +2726,7 @@
         appState[pair[1]] = el.checked;
         const lbl = el.nextElementSibling;
         if (lbl) lbl.classList.toggle("is-checked", el.checked);
+        if (lbl) maskAdsCheckLabel(lbl);
         appState.currentPage = 1;
         renderTable();
       });
@@ -2749,12 +2751,14 @@
         "</span></label>"
       );
     }).join("");
+    row.querySelectorAll(".ads-radio-text").forEach(maskAdsRadioText);
     row.querySelectorAll(".ads-radio").forEach(function (r) {
       r.addEventListener("click", function () {
         appState.status = r.dataset.status;
         row.querySelectorAll(".ads-radio").forEach(function (x) {
           x.classList.toggle("is-active", x === r);
         });
+        row.querySelectorAll(".ads-radio-text").forEach(maskAdsRadioText);
         appState.currentPage = 1;
         renderTable();
       });
@@ -3350,6 +3354,7 @@
         weight: weight,
         color: o.color,
         anchor: o.anchor || "start",
+        maskOverflowPadding: o.maskOverflowPadding,
       });
     } else {
       const pad = o.textPad !== undefined ? o.textPad : 2;
@@ -3367,6 +3372,7 @@
         color: o.color,
         anchor: o.anchor || "start",
         preserveAspectYMin: Boolean(o.lineBandCenter),
+        maskOverflowPadding: o.maskOverflowPadding,
       });
     }
   }
@@ -3390,6 +3396,69 @@
         y: 18,
         height: 22,
       });
+    });
+  }
+
+  function maskAdsRadioText(el) {
+    if (!el || !staticAvailable()) return;
+    const radio = el.closest(".ads-radio");
+    const active = Boolean(radio && radio.classList.contains("is-active"));
+    maskEl(el, {
+      size: 21.6,
+      weight: active ? 400 : 300,
+      color: "currentColor",
+      maxW: 280,
+      y: 20,
+      height: 26,
+      textPad: 6,
+      maskOverflowPadding: 10,
+    });
+  }
+
+  function maskAdsCheckLabel(el) {
+    if (!el || !staticAvailable()) return;
+    const check = el.closest(".ads-check");
+    const input = check && check.querySelector(".check-input");
+    const checked =
+      el.classList.contains("is-checked") || Boolean(input && input.checked);
+    const maxW =
+      check && check.classList.contains("ads-check--changed")
+        ? 760
+        : check && check.classList.contains("ads-check--responses")
+          ? 318
+          : check && check.classList.contains("ads-check--depub")
+            ? 370
+            : check && check.classList.contains("ads-check--collapse")
+              ? 178
+              : check && check.classList.contains("ads-check--notags")
+                ? 128
+                : 260;
+    maskEl(el, {
+      size: 21.6,
+      weight: checked ? 400 : 300,
+      color: "currentColor",
+      maxW: maxW,
+      y: 20,
+      height: 26,
+      textPad: 6,
+      maskOverflowPadding: 10,
+    });
+  }
+
+  function maskAdsSingleLine(el, options) {
+    if (!el || !staticAvailable()) return;
+    options = options || {};
+    maskEl(el, {
+      size: options.size || 21.6,
+      weight: options.weight || 300,
+      color: options.color || "currentColor",
+      maxW: options.maxW || 360,
+      y: options.y || 20,
+      height: options.height || 26,
+      textPad: options.textPad || 4,
+      ctrlLayout: options.ctrlLayout,
+      lineBandCenter: Boolean(options.lineBandCenter),
+      maskOverflowPadding: options.maskOverflowPadding || 10,
     });
   }
 
@@ -3421,6 +3490,71 @@
         maxW: 260,
         ctrlLayout: isPhone ? "20-cap" : "20-lc",
         lineBandCenter: true,
+      });
+    });
+    document.querySelectorAll(".ads-radio-text").forEach(maskAdsRadioText);
+    document.querySelectorAll(".ads-check-label").forEach(maskAdsCheckLabel);
+    document.querySelectorAll(".ads-dropdown-text").forEach(function (el) {
+      const dd = el.closest(".ads-dropdown");
+      maskAdsSingleLine(el, {
+        size: dd && dd.classList.contains("ads-dropdown--rows") ? 22 : 21.6,
+        maxW: dd && dd.classList.contains("ads-dropdown--rows") ? 64 : 780,
+        y: 20,
+        height: 26,
+        ctrlLayout:
+          dd && dd.classList.contains("ads-dropdown--rows")
+            ? "216-dg"
+            : "216-lc",
+        lineBandCenter: true,
+      });
+    });
+    document.querySelectorAll(".ads-count-label").forEach(function (el) {
+      maskAdsSingleLine(el, {
+        maxW: 220,
+        color: "currentColor",
+        ctrlLayout: "216-lc",
+        lineBandCenter: true,
+      });
+    });
+    document.querySelectorAll(".ads-count-num").forEach(function (el) {
+      maskAdsSingleLine(el, {
+        maxW: 52,
+        color: "currentColor",
+        ctrlLayout: "216-dg",
+        lineBandCenter: true,
+      });
+    });
+    document.querySelectorAll(".ads-delete-text").forEach(function (el) {
+      maskAdsSingleLine(el, {
+        size: 14,
+        weight: 100,
+        color: "currentColor",
+        maxW: 42,
+        y: 15,
+        height: 18,
+        maskOverflowPadding: 4,
+      });
+    });
+    document.querySelectorAll(".ads-export-text").forEach(function (el) {
+      maskAdsSingleLine(el, {
+        size: 21,
+        weight: 200,
+        color: "currentColor",
+        maxW: 104,
+        y: 19,
+        height: 25,
+        maskOverflowPadding: 6,
+      });
+    });
+    document.querySelectorAll(".ads-export-xml").forEach(function (el) {
+      maskAdsSingleLine(el, {
+        size: 21,
+        weight: 300,
+        color: "currentColor",
+        maxW: 44,
+        y: 19,
+        height: 25,
+        maskOverflowPadding: 6,
       });
     });
   }
