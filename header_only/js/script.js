@@ -225,6 +225,160 @@ const STATIC_TEXT_FAMILY = "Roboto, Arial, sans-serif";
 const TEXT_RENDER_ENGINE = "bitmap-mask-v1";
 const DESIGN_VIEWPORT_WIDTH = 1920;
 const MIN_PAGE_SCALE = 0.05;
+const DESIGN_SCALE_PERCENT_STEPS = Object.freeze(
+  Array.from(
+    new Set([
+      ...Array.from({ length: 491 }, function (_, index) {
+        return index + 10;
+      }),
+      12.5,
+      16.667,
+      18.75,
+      19.531,
+      20.313,
+      21.563,
+      22.396,
+      28.125,
+      33.333,
+      37.5,
+      42.708,
+      43.438,
+      47.5,
+      53.333,
+      57.917,
+      61.458,
+      66.667,
+      71.146,
+      83.333,
+      87.5,
+      106.667,
+      112.5,
+      133.333,
+      166.667,
+      179.167,
+      266.667,
+    ]),
+  ).sort(function (a, b) {
+    return a - b;
+  }),
+);
+const DESIGN_SCALE_CLASS_PERCENT_STEPS = Object.freeze([
+  50, 67, 75, 80, 90, 100, 110, 125, 150, 175, 200, 225, 250, 300, 400, 500,
+]);
+const DESIGN_SCALE_RANGE_CLASSES = Object.freeze([
+  [175, 200],
+  [150, 175],
+  [125, 150],
+  [110, 125],
+  [100, 110],
+  [90, 100],
+  [80, 90],
+  [75, 80],
+]);
+
+function getNearestDesignScale(rawScale) {
+  const rawPercent =
+    Number.isFinite(rawScale) && rawScale > 0 ? rawScale * 100 : 100;
+  let nearestPercent = DESIGN_SCALE_PERCENT_STEPS[0];
+  let nearestDelta = Math.abs(rawPercent - nearestPercent);
+
+  DESIGN_SCALE_PERCENT_STEPS.forEach(function (percent) {
+    const delta = Math.abs(rawPercent - percent);
+    if (delta >= nearestDelta) return;
+    nearestPercent = percent;
+    nearestDelta = delta;
+  });
+
+  return nearestPercent / 100;
+}
+
+function getDesignViewportScale(layoutWidth) {
+  const width =
+    Number.isFinite(layoutWidth) && layoutWidth > 0
+      ? layoutWidth
+      : getLayoutViewportWidth();
+  const scale = width / DESIGN_VIEWPORT_WIDTH;
+  return Number.isFinite(scale) && scale > 0 ? scale : 1;
+}
+
+function getDesignScaleClassPercent(scale) {
+  const rawPercent = Number.isFinite(scale) && scale > 0 ? scale * 100 : 100;
+  let nearestPercent = DESIGN_SCALE_CLASS_PERCENT_STEPS[0];
+  let nearestDelta = Math.abs(rawPercent - nearestPercent);
+
+  DESIGN_SCALE_CLASS_PERCENT_STEPS.forEach(function (percent) {
+    const delta = Math.abs(rawPercent - percent);
+    if (delta >= nearestDelta) return;
+    nearestPercent = percent;
+    nearestDelta = delta;
+  });
+
+  return nearestPercent;
+}
+
+function formatDesignScalePercent(percent) {
+  return percent
+    .toFixed(3)
+    .replace(/\.?0+$/, "")
+    .replace(".", "-");
+}
+
+let currentDesignScaleClass = "";
+let currentDesignScaleRangeClass = "";
+
+function applyDesignScaleClass(scale) {
+  const root = document.documentElement;
+  const rawPercent = Number.isFinite(scale) && scale > 0 ? scale * 100 : 100;
+  const classPercent = getDesignScaleClassPercent(scale);
+  const percentToken = formatDesignScalePercent(classPercent);
+  const isBaseScale = percentToken === "100";
+  const nextClass = isBaseScale ? "" : "viewport-scale-" + percentToken;
+  const matchedRange = DESIGN_SCALE_RANGE_CLASSES.find(function (range) {
+    return rawPercent > range[0] && rawPercent < range[1];
+  });
+  const nextRangeClass = matchedRange
+    ? "viewport-scale-range-" +
+      formatDesignScalePercent(matchedRange[0]) +
+      "-" +
+      formatDesignScalePercent(matchedRange[1])
+    : "";
+
+  if (
+    currentDesignScaleClass !== nextClass ||
+    currentDesignScaleRangeClass !== nextRangeClass
+  ) {
+    Array.from(root.classList).forEach(function (className) {
+      if (className.indexOf("viewport-scale-") === 0) {
+        root.classList.remove(className);
+      }
+    });
+  }
+
+  if (nextClass && !root.classList.contains(nextClass)) {
+    root.classList.add(nextClass);
+  }
+  if (nextRangeClass && !root.classList.contains(nextRangeClass)) {
+    root.classList.add(nextRangeClass);
+  }
+
+  currentDesignScaleClass = nextClass;
+  currentDesignScaleRangeClass = nextRangeClass;
+  root.dataset.viewportScale = percentToken.replace("-", ".");
+  root.dataset.viewportScaleRaw = rawPercent.toFixed(3).replace(/\.?0+$/, "");
+  root.style.setProperty(
+    "--viewport-scale-percent",
+    percentToken.replace("-", "."),
+  );
+  root.style.setProperty(
+    "--viewport-scale-raw-percent",
+    rawPercent.toFixed(3).replace(/\.?0+$/, ""),
+  );
+}
+
+window.DESIGN_SCALE_PERCENT_STEPS = DESIGN_SCALE_PERCENT_STEPS;
+window.DESIGN_SCALE_CLASS_PERCENT_STEPS = DESIGN_SCALE_CLASS_PERCENT_STEPS;
+window.getDesignViewportScale = getDesignViewportScale;
+window.applyDesignScaleClass = applyDesignScaleClass;
 
 function captureZoomLayoutReference(force) {
   return force;
@@ -264,7 +418,7 @@ function getCurrentPageScale() {
   );
   return Number.isFinite(value) && value > 0
     ? value
-    : getLayoutViewportWidth() / DESIGN_VIEWPORT_WIDTH;
+    : getDesignViewportScale();
 }
 
 function getDevicePixelScale() {
@@ -1135,7 +1289,7 @@ let lastViewportTextSignature = "";
 
 function getViewportTextSignature() {
   const layoutWidth = getLayoutViewportWidth();
-  const pageScale = layoutWidth / DESIGN_VIEWPORT_WIDTH;
+  const pageScale = getDesignViewportScale(layoutWidth);
   const visualScale =
     window.visualViewport &&
     Number.isFinite(window.visualViewport.scale) &&
@@ -2034,7 +2188,7 @@ function updateZoomAwareLines() {
   const textRenderModeChanged = updateSvgTextZoomCompensation();
   const root = document.documentElement;
   const layoutWidth = getLayoutViewportWidth();
-  const pageScale = layoutWidth / DESIGN_VIEWPORT_WIDTH;
+  const pageScale = getDesignViewportScale(layoutWidth);
   const underlineScreenDotPx = 2;
   const underlineScreenGapPx = 3;
   const zoomSafeLine = Math.max(MIN_PAGE_SCALE, pageScale);
@@ -2044,6 +2198,7 @@ function updateZoomAwareLines() {
   const nextVars = {
     "--page-scale": pageScale.toFixed(6),
     "--dpx": pageScale.toFixed(6) + "px",
+    "--fvw": (pageScale * 19.2).toFixed(6) + "px",
     "--ui-half-line": (pageScale * 0.5).toFixed(6) + "px",
     "--ui-hairline": pageScale.toFixed(6) + "px",
     "--ui-control-line": (pageScale * 0.5).toFixed(6) + "px",
@@ -2063,6 +2218,8 @@ function updateZoomAwareLines() {
     zoomLineVarsCache[name] = nextVars[name];
     root.style.setProperty(name, nextVars[name]);
   });
+
+  applyDesignScaleClass(pageScale);
 
   return textRenderModeChanged;
 }

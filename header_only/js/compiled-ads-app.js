@@ -3582,10 +3582,17 @@
 
   function syncDesignViewportUnit() {
     const w = document.documentElement.clientWidth || window.innerWidth || 1920;
+    const scale =
+      typeof window.getDesignViewportScale === "function"
+        ? window.getDesignViewportScale(w)
+        : w / 1920;
     document.documentElement.style.setProperty(
       "--fvw",
-      w / 100 + "px",
+      scale * 19.2 + "px",
     );
+    if (typeof window.applyDesignScaleClass === "function") {
+      window.applyDesignScaleClass(scale);
+    }
   }
 
   window.syncDesignViewportUnit = syncDesignViewportUnit;
