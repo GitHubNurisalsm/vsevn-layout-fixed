@@ -540,10 +540,11 @@ body:has(#adsTable) #zoomFrame {
   transition: border-color 0.15s ease;
 }
 .ads-export-line {
-  display: block;
+  display: flex;
+  align-items: center;
   flex: 1;
   min-width: 0;
-  height: auto;
+  height: 100%;
   padding: 0 calc(47 * var(--px)) 0 calc(18 * var(--px));
   font-size: calc(21 * var(--px));
   line-height: 1;
@@ -556,11 +557,13 @@ body:has(#adsTable) #zoomFrame {
   font-weight: 200;
   color: #9c9c9c;
   transition: color 0.15s ease;
+  flex: 0 0 auto;
 }
 .ads-export-xml {
   font-weight: 300;
   color: #a8d889;
   transition: color 0.15s ease;
+  flex: 0 0 auto;
 }
 .ads-export-icon-wrap {
   position: absolute;
@@ -896,7 +899,8 @@ body:has(#adsTable) #zoomFrame {
 .ads-delete-text .svg-label,
 .ads-export-text .svg-label,
 .ads-export-xml .svg-label {
-  display: block;
+  display: inline-block;
+  vertical-align: top;
 }
 
 .ads-radio-text,
