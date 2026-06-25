@@ -542,7 +542,6 @@ body:has(#adsTable) #zoomFrame {
 .ads-export-line {
   display: flex;
   align-items: center;
-  gap: calc(8 * var(--px));
   flex: 1;
   min-width: 0;
   height: 100%;
@@ -565,6 +564,7 @@ body:has(#adsTable) #zoomFrame {
   color: #a8d889;
   transition: color 0.15s ease;
   flex: 0 0 auto;
+  transform: translateX(calc(12 * var(--px)));
 }
 .ads-export-icon-wrap {
   position: absolute;
